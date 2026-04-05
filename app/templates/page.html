@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article class="wiki-page">
+
+  <header class="page-header">
+    <h1>{{ meta.title }}</h1>
+    <div class="page-meta">
+      {% for tag in meta.tags %}
+      <span class="tag tag-{{ tag }}">{{ tag }}</span>
+      {% endfor %}
+      {% if meta.updated %}
+      <span class="meta-date" title="Last updated">{{ meta.updated }}</span>
+      {% endif %}
+      {% if meta.sources %}
+      <span class="meta-sources">
+        Sources:
+        {% for src in meta.sources %}
+        <a href="/wiki/{{ src }}" class="wikilink">{{ src }}</a>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </span>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="wiki-content">
+    {{ html | safe }}
+  </div>
+
+</article>
+{% endblock %}

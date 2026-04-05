@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ title }} — LLM Wiki{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/pygments.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/">LLM Wiki</a>
+  <form class="search-form" action="/search" method="get" role="search">
+    <input type="search" name="q" placeholder="Search wiki…" value="{{ request.query_params.get('q', '') }}" autocomplete="off">
+    <button type="submit" aria-label="Search">⌕</button>
+  </form>
+  <nav class="topnav">
+    <a href="/pages">Pages</a>
+    {% if llm_enabled %}<a href="/ask" class="ask-link">Ask LLM</a>{% endif %}
+  </nav>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    {% for group, pages in sidebar_groups.items() %}
+    <section class="sidebar-group">
+      <h3 class="sidebar-group-title">{{ group | title }}s</h3>
+      <ul>
+        {% for p in pages %}
+        <li>
+          <a href="/wiki/{{ p.slug }}"
+             class="sidebar-link{% if p.slug == current_slug %} active{% endif %}"
+             title="{{ p.summary }}">
+            {{ p.title }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+  </aside>
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

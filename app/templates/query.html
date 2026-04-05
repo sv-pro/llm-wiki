@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ask-page">
+  <h1>Ask the Wiki</h1>
+  <p class="ask-intro">Ask a question — the LLM will search the wiki and answer using its content.</p>
+
+  <form class="ask-form" id="ask-form">
+    <textarea
+      id="question"
+      name="question"
+      rows="3"
+      placeholder="What is the World Manifest? How does taint propagation work?"
+      autofocus></textarea>
+    <button type="submit" id="ask-btn">Ask</button>
+  </form>
+
+  <div class="answer-box" id="answer-box" hidden>
+    <div class="answer-header">
+      <span>Answer</span>
+      <button class="btn-secondary" id="copy-btn" onclick="copyAnswer()">Copy</button>
+    </div>
+    <div class="answer-content" id="answer-content"></div>
+    <div class="answer-thinking" id="answer-thinking" hidden>
+      <span class="spinner"></span> Thinking…
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('ask-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const question = document.getElementById('question').value.trim();
+  if (!question) return;
+
+  const btn = document.getElementById('ask-btn');
+  const box = document.getElementById('answer-box');
+  const content = document.getElementById('answer-content');
+  const thinking = document.getElementById('answer-thinking');
+
+  btn.disabled = true;
+  btn.textContent = 'Asking…';
+  box.hidden = false;
+  content.textContent = '';
+  thinking.hidden = false;
+
+  try {
+    const resp = await fetch('/api/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question})
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      content.textContent = 'Error: ' + (err.detail || resp.statusText);
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') {
+          thinking.hidden = true;
+          // Render wikilinks in the final answer
+          renderWikilinks(content);
+          return;
+        }
+        if (data.startsWith('[ERROR]')) {
+          content.textContent += '\n' + data;
+          thinking.hidden = true;
+          return;
+        }
+        content.textContent += data.replace(/\\n/g, '\n');
+      }
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Ask';
+    thinking.hidden = true;
+  }
+});
+
+function renderWikilinks(el) {
+  // Convert [[slug]] patterns to links in the answer text
+  el.innerHTML = el.textContent
+    .replace(/\[\[([^\|\]]+?)(?:\|([^\]]+?))?\]\]/g, (_, slug, label) => {
+      const text = (label || slug).trim();
+      return `<a href="/wiki/${slug.trim()}" class="wikilink">${text}</a>`;
+    })
+    .replace(/\n/g, '<br>');
+}
+
+function copyAnswer() {
+  const text = document.getElementById('answer-content').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+</script>
+{% endblock %}
