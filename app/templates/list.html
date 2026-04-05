@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-list">
+  <h1>All Pages <span class="count">({{ pages | length }})</span></h1>
+
+  {% set grouped = {} %}
+  {% for p in pages %}
+    {% set g = p.tag if p.tag else "other" %}
+    {% if g not in grouped %}{% set _ = grouped.update({g: []}) %}{% endif %}
+    {% set _ = grouped[g].append(p) %}
+  {% endfor %}
+
+  {% for group, gp in grouped.items() %}
+  <section class="list-group">
+    <h2>{{ group | title }}s <span class="count">({{ gp | length }})</span></h2>
+    <ul class="page-cards">
+      {% for p in gp %}
+      <li class="page-card">
+        <a href="/wiki/{{ p.slug }}" class="page-card-title">{{ p.title }}</a>
+        {% if p.summary %}<p class="page-card-summary">{{ p.summary }}</p>{% endif %}
+        <div class="page-card-meta">
+          {% for tag in p.tags %}<span class="tag tag-{{ tag }}">{{ tag }}</span>{% endfor %}
+          {% if p.updated %}<span class="meta-date">{{ p.updated }}</span>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

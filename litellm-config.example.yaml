@@ -1,0 +1,35 @@
+# LiteLLM proxy configuration
+# Copy this file to litellm-config.yaml and fill in your API keys.
+# Docs: https://docs.litellm.ai/docs/proxy/configs
+
+model_list:
+
+  # ── OpenAI ──────────────────────────────────────────────────────────────────
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+
+  # ── Anthropic ────────────────────────────────────────────────────────────────
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ── Ollama (if running locally outside Docker) ───────────────────────────────
+  # - model_name: llama3.2
+  #   litellm_params:
+  #     model: ollama/llama3.2
+  #     api_base: http://host.docker.internal:11434
+
+general_settings:
+  # Uncomment to require an API key for LiteLLM itself:
+  # master_key: your-litellm-master-key
+
+litellm_settings:
+  drop_params: true   # ignore unsupported params silently

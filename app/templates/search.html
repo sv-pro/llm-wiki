@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="search-page">
+  <h1>Search</h1>
+
+  <form class="search-form-large" action="/search" method="get">
+    <input type="search" name="q" value="{{ query }}" placeholder="Search wiki…" autofocus>
+    <button type="submit">Search</button>
+  </form>
+
+  {% if query %}
+    {% if results %}
+    <p class="result-count">{{ results | length }} result{{ 's' if results | length != 1 }} for <strong>{{ query }}</strong></p>
+    <ul class="search-results">
+      {% for r in results %}
+      <li class="search-result">
+        <a href="/wiki/{{ r.meta.slug }}" class="result-title">{{ r.meta.title }}</a>
+        {% if r.meta.tags %}
+        <span class="result-tags">
+          {% for tag in r.meta.tags %}<span class="tag tag-{{ tag }}">{{ tag }}</span>{% endfor %}
+        </span>
+        {% endif %}
+        <p class="result-excerpt">{{ r.excerpt }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-results">No results found for <strong>{{ query }}</strong>.</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
